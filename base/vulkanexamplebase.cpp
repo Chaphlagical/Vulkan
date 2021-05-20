@@ -2465,7 +2465,7 @@ void VulkanExampleBase::setupDepthStencil()
 	imageCI.arrayLayers = 1;
 	imageCI.samples = VK_SAMPLE_COUNT_1_BIT;
 	imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
-	imageCI.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	imageCI.usage       = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
 	VK_CHECK_RESULT(vkCreateImage(device, &imageCI, nullptr, &depthStencil.image));
 	VkMemoryRequirements memReqs{};
@@ -2628,6 +2628,10 @@ void VulkanExampleBase::windowResize()
 		}
 	}
 
+	// Notify derived class
+	windowResized();
+	viewChanged();
+
 	// Command buffers need to be recreated as they may store
 	// references to the recreated frame buffer
 	destroyCommandBuffers();
@@ -2639,10 +2643,6 @@ void VulkanExampleBase::windowResize()
 	if ((width > 0.0f) && (height > 0.0f)) {
 		camera.updateAspectRatio((float)width / (float)height);
 	}
-
-	// Notify derived class
-	windowResized();
-	viewChanged();
 
 	prepared = true;
 }

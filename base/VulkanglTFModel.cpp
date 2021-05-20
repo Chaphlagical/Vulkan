@@ -7,9 +7,9 @@
 * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
 */
 
-#define TINYGLTF_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#define TINYGLTF_NO_STB_IMAGE_WRITE
+//#define TINYGLTF_IMPLEMENTATION
+//#define STB_IMAGE_IMPLEMENTATION
+//#define TINYGLTF_NO_STB_IMAGE_WRITE
 
 #include "VulkanglTFModel.h"
 

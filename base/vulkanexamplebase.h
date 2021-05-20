@@ -103,7 +103,6 @@ private:
 	void windowResize();
 	void handleMouseMove(int32_t x, int32_t y);
 	void nextFrame();
-	void updateOverlay();
 	void createPipelineCache();
 	void createCommandPool();
 	void createSynchronizationPrimitives();
@@ -115,7 +114,8 @@ private:
 protected:
 	// Returns the path to the root of the glsl or hlsl shader directory.
 	std::string getShadersPath() const;
-
+	// Update UI overlay
+	virtual void updateOverlay();
 	// Frame counter to display fps
 	uint32_t frameCounter = 0;
 	uint32_t lastFPS = 0;
