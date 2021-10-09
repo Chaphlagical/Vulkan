@@ -1,7 +1,7 @@
 /*
 * Vulkan Example - Hardware accelerated ray tracing callable shaders example
 *
-* Dynamically calls different shaders based on the geoemtry id in the closest hit shader
+* Dynamically calls different shaders based on the geometry id in the closest hit shader
 *
 * Relevant code parts are marked with [POI]
 *
@@ -47,7 +47,6 @@ public:
 	VulkanExample() : VulkanRaytracingSample()
 	{
 		title = "Ray tracing callable shaders";
-		settings.overlay = false;
 		timerSpeed *= 0.25f;
 		camera.type = Camera::CameraType::lookat;
 		camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 512.0f);
@@ -199,27 +198,15 @@ public:
 		}
 		std::vector<VkAccelerationStructureBuildRangeInfoKHR*> accelerationBuildStructureRangeInfos = { &accelerationStructureBuildRangeInfos[0], &accelerationStructureBuildRangeInfos[1], &accelerationStructureBuildRangeInfos[2] };
 
-		if (accelerationStructureFeatures.accelerationStructureHostCommands)
-		{
-			// Implementation supports building acceleration structure building on host
-			vkBuildAccelerationStructuresKHR(
-				device,
-				VK_NULL_HANDLE,
-				1,
-				&accelerationBuildGeometryInfo,
-				accelerationBuildStructureRangeInfos.data());
-		}
-		else
-		{
-			// Acceleration structure needs to be build on the device
-			VkCommandBuffer commandBuffer = vulkanDevice->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
-			vkCmdBuildAccelerationStructuresKHR(
-				commandBuffer,
-				1,
-				&accelerationBuildGeometryInfo,
-				accelerationBuildStructureRangeInfos.data());
-			vulkanDevice->flushCommandBuffer(commandBuffer, queue);
-		}
+		// Build the acceleration structure on the device via a one-time command buffer submission
+		// Some implementations may support acceleration structure building on the host (VkPhysicalDeviceAccelerationStructureFeaturesKHR->accelerationStructureHostCommands), but we prefer device builds
+		VkCommandBuffer commandBuffer = vulkanDevice->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+		vkCmdBuildAccelerationStructuresKHR(
+			commandBuffer,
+			1,
+			&accelerationBuildGeometryInfo,
+			accelerationBuildStructureRangeInfos.data());
+		vulkanDevice->flushCommandBuffer(commandBuffer, queue);
 
 		deleteScratchBuffer(scratchBuffer);
 	}
@@ -299,27 +286,15 @@ public:
 		accelerationStructureBuildRangeInfo.transformOffset = 0;
 		std::vector<VkAccelerationStructureBuildRangeInfoKHR*> accelerationBuildStructureRangeInfos = { &accelerationStructureBuildRangeInfo };
 
-		if (accelerationStructureFeatures.accelerationStructureHostCommands)
-		{
-			// Implementation supports building acceleration structure building on host
-			vkBuildAccelerationStructuresKHR(
-				device,
-				VK_NULL_HANDLE,
-				1,
-				&accelerationBuildGeometryInfo,
-				accelerationBuildStructureRangeInfos.data());
-		}
-		else
-		{
-			// Acceleration structure needs to be build on the device
-			VkCommandBuffer commandBuffer = vulkanDevice->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
-			vkCmdBuildAccelerationStructuresKHR(
-				commandBuffer,
-				1,
-				&accelerationBuildGeometryInfo,
-				accelerationBuildStructureRangeInfos.data());
-			vulkanDevice->flushCommandBuffer(commandBuffer, queue);
-		}
+		// Build the acceleration structure on the device via a one-time command buffer submission
+		// Some implementations may support acceleration structure building on the host (VkPhysicalDeviceAccelerationStructureFeaturesKHR->accelerationStructureHostCommands), but we prefer device builds
+		VkCommandBuffer commandBuffer = vulkanDevice->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+		vkCmdBuildAccelerationStructuresKHR(
+			commandBuffer,
+			1,
+			&accelerationBuildGeometryInfo,
+			accelerationBuildStructureRangeInfos.data());
+		vulkanDevice->flushCommandBuffer(commandBuffer, queue);
 
 		deleteScratchBuffer(scratchBuffer);
 		instancesBuffer.destroy();
@@ -604,6 +579,8 @@ public:
 				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 				VK_IMAGE_LAYOUT_GENERAL,
 				subresourceRange);
+
+			drawUI(drawCmdBuffers[i], frameBuffers[i]);
 
 			VK_CHECK_RESULT(vkEndCommandBuffer(drawCmdBuffers[i]));
 		}

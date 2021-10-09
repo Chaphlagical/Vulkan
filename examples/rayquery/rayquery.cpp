@@ -46,7 +46,7 @@ public:
 		camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 512.0f);
 		camera.setRotation(glm::vec3(0.0f, 0.0f, 0.0f));
 		camera.setTranslation(glm::vec3(0.0f, 3.0f, -10.0f));
-		settings.overlay = true;
+		rayQueryOnly = true;
 		enableExtensions();
 		enabledDeviceExtensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
 	}
@@ -125,27 +125,15 @@ public:
 		accelerationStructureBuildRangeInfo.transformOffset = 0;
 		std::vector<VkAccelerationStructureBuildRangeInfoKHR*> accelerationBuildStructureRangeInfos = { &accelerationStructureBuildRangeInfo };
 
-		if (accelerationStructureFeatures.accelerationStructureHostCommands)
-		{
-			// Implementation supports building acceleration structure building on host
-			vkBuildAccelerationStructuresKHR(
-				device,
-				VK_NULL_HANDLE,
-				1,
-				&accelerationBuildGeometryInfo,
-				accelerationBuildStructureRangeInfos.data());
-		}
-		else
-		{
-			// Acceleration structure needs to be build on the device
-			VkCommandBuffer commandBuffer = vulkanDevice->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
-			vkCmdBuildAccelerationStructuresKHR(
-				commandBuffer,
-				1,
-				&accelerationBuildGeometryInfo,
-				accelerationBuildStructureRangeInfos.data());
-			vulkanDevice->flushCommandBuffer(commandBuffer, queue);
-		}
+		// Build the acceleration structure on the device via a one-time command buffer submission
+		// Some implementations may support acceleration structure building on the host (VkPhysicalDeviceAccelerationStructureFeaturesKHR->accelerationStructureHostCommands), but we prefer device builds
+		VkCommandBuffer commandBuffer = vulkanDevice->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+		vkCmdBuildAccelerationStructuresKHR(
+			commandBuffer,
+			1,
+			&accelerationBuildGeometryInfo,
+			accelerationBuildStructureRangeInfos.data());
+		vulkanDevice->flushCommandBuffer(commandBuffer, queue);
 
 		deleteScratchBuffer(scratchBuffer);
 	}
@@ -225,27 +213,15 @@ public:
 		accelerationStructureBuildRangeInfo.transformOffset = 0;
 		std::vector<VkAccelerationStructureBuildRangeInfoKHR*> accelerationBuildStructureRangeInfos = { &accelerationStructureBuildRangeInfo };
 
-		if (accelerationStructureFeatures.accelerationStructureHostCommands)
-		{
-			// Implementation supports building acceleration structure building on host
-			vkBuildAccelerationStructuresKHR(
-				device,
-				VK_NULL_HANDLE,
-				1,
-				&accelerationBuildGeometryInfo,
-				accelerationBuildStructureRangeInfos.data());
-		}
-		else
-		{
-			// Acceleration structure needs to be build on the device
-			VkCommandBuffer commandBuffer = vulkanDevice->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
-			vkCmdBuildAccelerationStructuresKHR(
-				commandBuffer,
-				1,
-				&accelerationBuildGeometryInfo,
-				accelerationBuildStructureRangeInfos.data());
-			vulkanDevice->flushCommandBuffer(commandBuffer, queue);
-		}
+		// Build the acceleration structure on the device via a one-time command buffer submission
+		// Some implementations may support acceleration structure building on the host (VkPhysicalDeviceAccelerationStructureFeaturesKHR->accelerationStructureHostCommands), but we prefer device builds
+		VkCommandBuffer commandBuffer = vulkanDevice->createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+		vkCmdBuildAccelerationStructuresKHR(
+			commandBuffer,
+			1,
+			&accelerationBuildGeometryInfo,
+			accelerationBuildStructureRangeInfos.data());
+		vulkanDevice->flushCommandBuffer(commandBuffer, queue);
 
 		deleteScratchBuffer(scratchBuffer);
 		instancesBuffer.destroy();
@@ -295,7 +271,7 @@ public:
 			vkCmdBindPipeline(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 			scene.draw(drawCmdBuffers[i]);
 
-			drawUI(drawCmdBuffers[i]);
+			VulkanExampleBase::drawUI(drawCmdBuffers[i]);
 
 			vkCmdEndRenderPass(drawCmdBuffers[i]);
 

@@ -5,7 +5,7 @@
 *
 * Relevant code parts are marked with [POI]
 *
-* Copyright (C) 2018 by Sascha Willems - www.saschawillems.de
+* Copyright (C) 2018-2021 by Sascha Willems - www.saschawillems.de
 *
 * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
 */
@@ -22,6 +22,8 @@ float rnd() {
 class VulkanExample : public VulkanExampleBase
 {
 public:
+	VkPhysicalDeviceInlineUniformBlockFeaturesEXT enabledInlineUniformBlockFeatures{};
+
 	vkglTF::Model model;
 
 	struct Object {
@@ -72,7 +74,6 @@ public:
 		camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 		camera.movementSpeed = 4.0f;
 		camera.rotationSpeed = 0.25f;
-		settings.overlay = true;
 
 		srand((unsigned int)time(0));
 
@@ -325,6 +326,14 @@ public:
 		VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
 
 		VulkanExampleBase::submitFrame();
+	}
+
+	void getEnabledFeatures()
+	{
+		// Enable the inline uniform block feature using the dedicated physical device structure
+		enabledInlineUniformBlockFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT;
+		enabledInlineUniformBlockFeatures.inlineUniformBlock = VK_TRUE;
+		deviceCreatepNextChain = &enabledInlineUniformBlockFeatures;
 	}
 
 	void prepare()

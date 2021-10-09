@@ -105,7 +105,6 @@ public:
 		camera.setPosition(glm::vec3(-3.2f, 1.0f, 5.9f));
 		camera.setRotation(glm::vec3(0.5f, 210.05f, 0.0f));
 		camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
-		settings.overlay = true;
 		UIOverlay.subpass = 2;
 	}
 
@@ -408,7 +407,7 @@ public:
 		dependencies[2].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		dependencies[2].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-		dependencies[3].srcSubpass = 0;
+		dependencies[3].srcSubpass = 2;
 		dependencies[3].dstSubpass = VK_SUBPASS_EXTERNAL;
 		dependencies[3].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		dependencies[3].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
